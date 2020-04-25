@@ -1,0 +1,4 @@
+{
+    "sketch": "TrafficLightArduinoLibrary.ino",
+    "board": "arduino:avr:uno"
+}
