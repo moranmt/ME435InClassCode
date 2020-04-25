@@ -21,13 +21,19 @@ void setup()
   pinMode(BUTTON, INPUT_PULLUP);
   
   
-  digitalWrite(GREEN_LED, HIGH);
-  digitalWrite(RED_LED, HIGH);
-  digitalWrite(YELLOW_LED, HIGH);
+  //digitalWrite(GREEN_LED, HIGH);
+  PORTD |= _BV(PORTD6); //replaces digitalWrite(GREEN_LED, HIGH);
+  //digitalWrite(RED_LED, HIGH);
+  PORTB |= _BV(PORTB2);  // replaces digitalWrite(RED_LED, HIGH);
+  //digitalWrite(YELLOW_LED, HIGH);
+  PORTB |= _BV(PORTB1);  // replaces digitalWrite(YELLOW_LED, HIGH);
   delay(100);
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(RED_LED, LOW);
-  digitalWrite(YELLOW_LED, LOW);
+  //digitalWrite(RED_LED, LOW);
+  PORTB &= ~_BV(PORTB2);      //replaces digitalWrite(RED_LED, LOW); or use PORTB = PORTB & B11111011;
+  //digitalWrite(GREEN_LED, LOW);
+  PORTD &= ~_BV(PORTD6); //replaces digitalWrite(GREEN_LED, LOW);
+  //digitalWrite(YELLOW_LED, LOW);
+  PORTB &= ~_BV(PORTB1);// replaces digitalWrite(YELLOW_LED, LOW);
   delay(100);
   
   
@@ -37,21 +43,30 @@ void loop()
 {
   
   if(digitalRead(BUTTON) == PRESSED){
-    digitalWrite(GREEN_LED, HIGH);
+    PORTD |= _BV(PORTD6); //replaces digitalWrite(GREEN_LED, HIGH);
+    
     delay(2000);
-    digitalWrite(GREEN_LED, LOW);
-    digitalWrite(YELLOW_LED, HIGH);
+    PORTD &= ~_BV(PORTD6); //replaces digitalWrite(GREEN_LED, LOW);
+    PORTB |= _BV(PORTB1);//replaces digitalWrite(YELLOW_LED, HIGH);
     delay(1000);
-    digitalWrite(YELLOW_LED, LOW);
-    digitalWrite(RED_LED, HIGH);
+    PORTB &= ~_BV(PORTB1);// replaces digitalWrite(YELLOW_LED, LOW);
+    
+    
+    PORTB |= _BV(PORTB2);  // replaces digitalWrite(RED_LED, HIGH); or use PORTB = PORTB | B00000100;
     delay(5000);
-    digitalWrite(RED_LED, LOW);
+    
+    
+    PORTB &= ~_BV(PORTB2);      //replaces digitalWrite(RED_LED, LOW); or use PORTB = PORTB & B11111011;
+
     
   }
   else{
-    digitalWrite(RED_LED, LOW);
-    digitalWrite(GREEN_LED, LOW);
-    digitalWrite(YELLOW_LED, LOW);
+    //digitalWrite(RED_LED, LOW);
+    PORTB &= ~_BV(PORTB2);      //replaces digitalWrite(RED_LED, LOW); or use PORTB = PORTB & B11111011;
+    //digitalWrite(GREEN_LED, LOW);
+    PORTD &= ~_BV(PORTD6); //replaces digitalWrite(GREEN_LED, LOW);
+    //digitalWrite(YELLOW_LED, LOW);
+    PORTB &= ~_BV(PORTB1);// replaces digitalWrite(YELLOW_LED, LOW);
   }
 
 }
