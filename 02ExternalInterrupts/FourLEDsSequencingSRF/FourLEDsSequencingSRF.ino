@@ -2,6 +2,7 @@
 #define	YELLOW_LED			9
 #define	GREEN_LED			6
 #define BLUE_LED			5
+
 #define BUTTON_RED 			3
 #define BUTTON_YELLOW 		2
 #define BUTTON_GREEN 		1
@@ -73,9 +74,13 @@ void setup()
   
   
   
-  attachInterrupt(digitalPinToInterrupt(BUTTON_YELLOW), yellow_ButtonISR, FALLING);
-  attachInterrupt(digitalPinToInterrupt(BUTTON_RED), red_ButtonISR, FALLING);
-  
+  //attachInterrupt(digitalPinToInterrupt(BUTTON_YELLOW), yellow_ButtonISR, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(BUTTON_RED), red_ButtonISR, FALLING);
+  //EICRA = 0x0A; //Set INT) & INT1 to falling interrupts
+  EICRA = _BV(ISC11) | _BV(ISC01); //Set INT) & INT1 to falling interrupts
+  //EIMSK = 0x03; //turrns on INT1 and INT0
+  EIMSK = _BV(INT0) | _BV(INT1);
+
   digitalWrite(GREEN_LED, HIGH);
   digitalWrite(RED_LED, HIGH);
   digitalWrite(YELLOW_LED, HIGH);
@@ -213,11 +218,13 @@ void addLED(uint8_t LEDtoAdd){
 }
 
 
-void yellow_ButtonISR(){
+//void yellow_ButtonISR(){
+ISR(INT0_vect){
   MainEventFlags |= Flag_BUTTON_YELLOW;
   
 }
 
-void red_ButtonISR(){
+//void red_ButtonISR(){
+ISR(INT1_vect){
   MainEventFlags |= Flag_BUTTON_RED;
 }
