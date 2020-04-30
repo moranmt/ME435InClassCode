@@ -1,13 +1,3 @@
-#define	RED_LED				10
-#define	YELLOW_LED			9
-#define	GREEN_LED			6
-#define BLUE_LED			5
-
-#define BUTTON_RED 			3
-#define BUTTON_YELLOW 		2
-#define BUTTON_GREEN 		1
-#define BUTTON_BLUE 		0
-
 //output ports and bits
 #define RED_LED_PORT PORTB
 #define RED_LED_BIT 2
@@ -41,16 +31,16 @@ uint8_t	 GreenState = HIGH;
 uint8_t  lastGreenState = HIGH;
 
 int LEDindex = 0;
-uint8_t savedLEDs[10] = {BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED,
-                         BLUE_LED};
+uint8_t savedLEDs[10] = {BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT,
+                         BLUE_LED_BIT};
 
   
 
@@ -106,7 +96,7 @@ void setup()
   
 }
 
-void showFeedbackLEDsloop(){
+void showFeedback(){
   if(bit_is_clear(RED_BUTTON_PINREG,RED_BUTTON_BIT)){
     RED_LED_PORT |= _BV(RED_LED_BIT);
   }else{
@@ -147,13 +137,7 @@ void oldtemptestloop(){
 void loop()
 {
   
-/*  for sequencing
-  digitalWrite(RED_LED, !digitalRead(BUTTON_RED));
-  digitalWrite(GREEN_LED, !digitalRead(BUTTON_GREEN));
-  digitalWrite(YELLOW_LED, !digitalRead(BUTTON_YELLOW));
-  digitalWrite(BLUE_LED, !digitalRead(BUTTON_BLUE));
-  
-  */
+  //showFeedback();
   
   
   
@@ -162,8 +146,7 @@ void loop()
     MainEventFlags &= ~Flag_BUTTON_RED;
     if(bit_is_clear(RED_BUTTON_PINREG,RED_BUTTON_BIT)){
       //Do the action
-      RED_LED_PORT ^= _BV(RED_LED_BIT); //toggle red led
-      //addLED(RED_LED);
+      addLED(RED_LED_BIT);
   	}
   }
   
@@ -173,8 +156,7 @@ void loop()
     MainEventFlags &= ~Flag_BUTTON_YELLOW;
     if(bit_is_clear(YELLOW_BUTTON_PINREG, YELLOW_BUTTON_BIT)){
       //Do the action
-      YELLOW_LED_PORT ^= _BV(YELLOW_LED_BIT);
-      //addLED(YELLOW_LED);
+      addLED(YELLOW_LED_BIT);
   	}
   }
   if(MainEventFlags & Flag_BUTTON_GREEN){
@@ -182,8 +164,7 @@ void loop()
     MainEventFlags &= ~Flag_BUTTON_GREEN;
     if(bit_is_clear(GREEN_BUTTON_PINREG, GREEN_BUTTON_BIT)){
       //Do the action
-      GREEN_LED_PORT ^= _BV(GREEN_LED_BIT);
-      //addLED(YELLOW_LED);
+      addLED(GREEN_LED_BIT);
   	}
   }
 
@@ -192,74 +173,43 @@ void loop()
     MainEventFlags &= ~Flag_BUTTON_BLUE;
     if(bit_is_clear(BLUE_BUTTON_PINREG, BLUE_BUTTON_BIT)){
       //Do the action
-      BLUE_LED_PORT ^= _BV(BLUE_LED_BIT);
+      runLEDs(); //old code previously here being moved to a function
       //addLED(YELLOW_LED);
   	}
   }
   
-  /*  OLD for polling
-  //BlueState = digitalRead(BUTTON_BLUE);
-  //GreenState = digitalRead(BUTTON_GREEN);
-  BlueState = bit_is_set(BLUE_BUTTON_PINREG, BLUE_BUTTON_BIT);
-  GreenState = bit_is_set(GREEN_BUTTON_PINREG, GREEN_BUTTON_BIT);
-
-  if (BlueState != lastBlueState) {
-    
-    if (!BlueState) {
-
-      BLUE_LED_PORT ^= _BV(BLUE_LED_BIT);
-      /*
-      for (int i = 0; i < sizeof(savedLEDs); i++){
-        digitalWrite(savedLEDs[i], !digitalRead(savedLEDs[i]));
-        delay(500);
-        digitalWrite(savedLEDs[i], !digitalRead(savedLEDs[i]));
-        delay(500);
-        savedLEDs[i] = BLUE_LED;
-      }	
-      LEDindex = 0;
-      
-
-    } 
-        delay(50);
-  }
   
-  if (GreenState != lastGreenState) {
-    
-    if (!GreenState) {
-      //button HIGH
-      GREEN_LED_PORT ^= _BV(GREEN_LED_BIT);
-     	//addLED(GREEN_LED);
-    } 
-        delay(50);
-  }
-  
-  lastBlueState = BlueState;
-  lastGreenState = GreenState;
-  */
 }
 
+void runLEDs(){
+  for (int i = 0; i < sizeof(savedLEDs); i++){
+    uint8_t activeLED = savedLEDs[i];
+    if(activeLED == RED_LED_BIT || activeLED == YELLOW_LED_BIT){
+      RED_LED_PORT |= _BV(activeLED);
+    }else{
+      GREEN_LED_PORT |= _BV(activeLED);
+    }
+    delay(500);
+    if(activeLED == RED_LED_BIT || activeLED == YELLOW_LED_BIT){
+      RED_LED_PORT &= ~_BV(activeLED);
+    }else{
+      GREEN_LED_PORT &= ~_BV(activeLED);
+    }
+    delay(500);
+    savedLEDs[i] = BLUE_LED_BIT;
+  }	
+  LEDindex = 0;
+}
 
 void addLED(uint8_t LEDtoAdd){
-  if(LEDindex <= 9){
+  if(LEDindex < sizeof(savedLEDs)){
     savedLEDs[LEDindex] = LEDtoAdd;
   	LEDindex += 1;
   }
 
 }
 
-/*
-//void yellow_ButtonISR(){
-ISR(INT0_vect){
-  MainEventFlags |= Flag_BUTTON_YELLOW;
-  
-}
 
-//void red_ButtonISR(){
-ISR(INT1_vect){
-  MainEventFlags |= Flag_BUTTON_RED;
-}
-
-*/
 
 ISR(PCINT2_vect){
   uint8_t changedBits;
