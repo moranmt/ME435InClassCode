@@ -56,8 +56,14 @@ uint8_t savedLEDs[10] = {BLUE_LED,
 
 
 volatile uint32_t	MainEventFlags = 0;
-#define Flag_BUTTON_YELLOW	0x01
-#define Flag_BUTTON_RED		0x02
+#define Flag_BUTTON_RED		0x01
+#define Flag_BUTTON_YELLOW	0x02
+#define Flag_BUTTON_GREEN		0x04
+#define Flag_BUTTON_BLUE	0x08
+
+
+
+volatile uint8_t portdhistory = 0xFF;
 
 void setup()
 {
@@ -77,19 +83,24 @@ void setup()
   //attachInterrupt(digitalPinToInterrupt(BUTTON_YELLOW), yellow_ButtonISR, FALLING);
   //attachInterrupt(digitalPinToInterrupt(BUTTON_RED), red_ButtonISR, FALLING);
   //EICRA = 0x0A; //Set INT) & INT1 to falling interrupts
-  EICRA = _BV(ISC11) | _BV(ISC01); //Set INT) & INT1 to falling interrupts
+  //EICRA = _BV(ISC11) | _BV(ISC01); //Set INT) & INT1 to falling interrupts
   //EIMSK = 0x03; //turrns on INT1 and INT0
-  EIMSK = _BV(INT0) | _BV(INT1);
+  //EIMSK = _BV(INT0) | _BV(INT1);
+  
+  PCICR = _BV(PCIE2);   //enable pin change innerupt for port D
+  //PCMSK2 = 0x0F;    //RD0-RD3 intterupts
+  PCMSK2 = _BV(PCINT19) | _BV(PCINT18) | _BV(PCINT17) | _BV(PCINT16);
+  sei();    //turn on interrupts globaly
 
-  digitalWrite(GREEN_LED, HIGH);
-  digitalWrite(RED_LED, HIGH);
-  digitalWrite(YELLOW_LED, HIGH);
-  digitalWrite(BLUE_LED, HIGH);
+  GREEN_LED_PORT |= _BV(GREEN_LED_BIT);
+  RED_LED_PORT |= _BV(RED_LED_BIT);
+  YELLOW_LED_PORT |= _BV(YELLOW_LED_BIT);
+  BLUE_LED_PORT |= _BV(BLUE_LED_BIT);
   delay(100);
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(RED_LED, LOW);
-  digitalWrite(YELLOW_LED, LOW);
-  digitalWrite(BLUE_LED, LOW);
+  GREEN_LED_PORT &= ~_BV(GREEN_LED_BIT);
+  RED_LED_PORT &= ~_BV(RED_LED_BIT);
+  YELLOW_LED_PORT &= ~_BV(YELLOW_LED_BIT);
+  BLUE_LED_PORT &= ~_BV(BLUE_LED_BIT);
   delay(100);
   
   
@@ -166,9 +177,27 @@ void loop()
       //addLED(YELLOW_LED);
   	}
   }
+  if(MainEventFlags & Flag_BUTTON_GREEN){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_GREEN;
+    if(bit_is_clear(GREEN_BUTTON_PINREG, GREEN_BUTTON_BIT)){
+      //Do the action
+      GREEN_LED_PORT ^= _BV(GREEN_LED_BIT);
+      //addLED(YELLOW_LED);
+  	}
+  }
+
+  if(MainEventFlags & Flag_BUTTON_BLUE){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_BLUE;
+    if(bit_is_clear(BLUE_BUTTON_PINREG, BLUE_BUTTON_BIT)){
+      //Do the action
+      BLUE_LED_PORT ^= _BV(BLUE_LED_BIT);
+      //addLED(YELLOW_LED);
+  	}
+  }
   
-  
-  
+  /*  OLD for polling
   //BlueState = digitalRead(BUTTON_BLUE);
   //GreenState = digitalRead(BUTTON_GREEN);
   BlueState = bit_is_set(BLUE_BUTTON_PINREG, BLUE_BUTTON_BIT);
@@ -188,7 +217,7 @@ void loop()
         savedLEDs[i] = BLUE_LED;
       }	
       LEDindex = 0;
-      */
+      
 
     } 
         delay(50);
@@ -206,6 +235,7 @@ void loop()
   
   lastBlueState = BlueState;
   lastGreenState = GreenState;
+  */
 }
 
 
@@ -217,7 +247,7 @@ void addLED(uint8_t LEDtoAdd){
 
 }
 
-
+/*
 //void yellow_ButtonISR(){
 ISR(INT0_vect){
   MainEventFlags |= Flag_BUTTON_YELLOW;
@@ -227,4 +257,34 @@ ISR(INT0_vect){
 //void red_ButtonISR(){
 ISR(INT1_vect){
   MainEventFlags |= Flag_BUTTON_RED;
+}
+
+*/
+
+ISR(PCINT2_vect){
+  uint8_t changedBits;
+  changedBits = PIND ^ portdhistory;
+  portdhistory = PIND;
+
+  if(changedBits & _BV(RED_BUTTON_BIT)){
+    if(bit_is_clear(RED_BUTTON_PINREG,RED_BUTTON_BIT)){
+      MainEventFlags |= Flag_BUTTON_RED;
+    }
+  }
+  if(changedBits & _BV(YELLOW_BUTTON_BIT)){
+    if(bit_is_clear(YELLOW_BUTTON_PINREG,YELLOW_BUTTON_BIT)){
+      MainEventFlags |= Flag_BUTTON_YELLOW;
+    }
+  }
+  if(changedBits & _BV(GREEN_BUTTON_BIT)){
+   if(bit_is_clear(GREEN_BUTTON_PINREG,GREEN_BUTTON_BIT)){
+      MainEventFlags |= Flag_BUTTON_GREEN;
+    } 
+  }
+  if(changedBits & _BV(BLUE_BUTTON_BIT)){
+    if(bit_is_clear(BLUE_BUTTON_PINREG,BLUE_BUTTON_BIT)){
+      MainEventFlags |= Flag_BUTTON_BLUE;
+    }
+  }
+
 }
