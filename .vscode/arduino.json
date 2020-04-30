@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM10",
-    "sketch": "02ExternalInterrupts\\FourToggleLEDSarduinoLib\\FourToggleLEDSarduinoLib.ino"
+    
 }
