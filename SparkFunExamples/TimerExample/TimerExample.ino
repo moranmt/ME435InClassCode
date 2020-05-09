@@ -1,5 +1,5 @@
 // Pins
-const int led_pin = PB5;
+int led_pin = PB5;
 
 // Counter and compare values
 const uint16_t t1_load = 0;
