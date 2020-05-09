@@ -11,20 +11,40 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 
 #define GREEN_LED 6
 #define YELLOW_LED 7
+//timer 2 for green use 0.001s
 
+//prescaler timer1, legal values 0-65536
+//1-----  1,600,000
+//8-----  200,000
+//64----  25,000
+//256---  6250
+//1024--  1562.5
+//prescaler timer2, legal values 0-256
+//8-----  2000
+//32----- 500
+//64----  250
+
+
+// Counter and compare values
+#define TIMER1_START  0
+#define TIMER1_COMPARE  25000
+
+// Counter and compare values
+#define TIMER2_START  0
+#define TIMER2_COMPARE  250
 
 /*** Interrupt flags ***/
 volatile int mainEventFlags = 0;
 #define GREEN_BUTTON_FLAG 0x01
 #define YELLOW_BUTTON_FLAG 0x02
 
-unsigned long yellowTimerMs = 0;
+unsigned long yellowTimerTenths = 0;
 uint8_t isyellowTimerRunning = 0;
 
-unsigned long greenTimerMs = 0;
+unsigned long greenTimerTenths = 0;
 uint8_t isgreenTimerRunning = 0;
 
-unsigned long priorTimeMs = 0;
+//unsigned long priorTimeMs = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -39,7 +59,29 @@ void setup() {
 
   pinMode(GREEN_LED, OUTPUT);
   pinMode(YELLOW_LED, OUTPUT);
+
+
+  //Timer 1 set up
+  TCCR1A = 0;                   // Reset Timer1 Control Reg A
+  TCCR1B &= ~_BV(CS12);          // Set to prescaler of 64
+  TCCR1B |= _BV(CS11);
+  TCCR1B |= _BV(CS10);
+  TCNT1 = TIMER1_START;         // Reset Timer1 and set compare value
+  OCR1A = TIMER1_COMPARE;
+  TIMSK1 = _BV(OCIE1A);         // Enable Timer1 overflow interrupt
   
+
+  //Timer 2 set up
+  TCCR2A = 0;                   // Reset Timer2 Control Reg A
+  TCCR2B |= _BV(CS22);          // Set to prescaler of 64
+  TCCR2B &= ~_BV(CS21);
+  TCCR2B &= ~_BV(CS20);
+  TCNT2 = TIMER2_START;         // Reset Timer1 and set compare value
+  OCR2A = TIMER2_COMPARE;
+  TIMSK2 = _BV(OCIE2A);         // Enable Timer1 overflow interrupt
+ 
+  sei();                        // Enable global interrupts
+
   digitalWrite(GREEN_LED, HIGH);
   digitalWrite(YELLOW_LED, HIGH);
   delay(100);
@@ -75,12 +117,12 @@ void loop() {
     digitalWrite(YELLOW_LED, LOW);
     lcd.clear();
     isyellowTimerRunning = 0;
-    yellowTimerMs = 0;
+    yellowTimerTenths = 0;
     isgreenTimerRunning = 0;
-    greenTimerMs = 0;
+    greenTimerTenths = 0;
   }
   
-
+/*
   unsigned long currentTimeMs = millis();
   unsigned long elapsedTimeMs = currentTimeMs - priorTimeMs;
   priorTimeMs = currentTimeMs;
@@ -92,8 +134,9 @@ void loop() {
     greenTimerMs += elapsedTimeMs;
     
   }
+  */
   updateLCD();  
-  delay(10);
+  //delay(10);
 }
 
 
@@ -108,12 +151,28 @@ void yellow_pushbutton_isr() {
 
 void updateLCD(){
   lcd.setCursor(0,LINE_1);
-  lcd.print(yellowTimerMs / 1000);
+  lcd.print(yellowTimerTenths / 10);
   lcd.print(".");
-  lcd.print(yellowTimerMs / 100 % 10);
+  lcd.print(yellowTimerTenths % 10);
   
   lcd.setCursor(0,LINE_2);
-  lcd.print(greenTimerMs / 1000);
+  lcd.print(greenTimerTenths / 1000);
   lcd.print(".");
-  lcd.print(greenTimerMs / 100 % 10);
+  lcd.print(greenTimerTenths / 100 % 10);
+}
+
+ISR(TIMER1_COMPA_vect) {
+  TCNT1 = TIMER1_START;
+    if(isyellowTimerRunning){
+    yellowTimerTenths++;
+    
+  }
+}
+
+ISR(TIMER2_COMPA_vect) {
+  TCNT2 = TIMER2_START;
+  if(isgreenTimerRunning){
+    greenTimerTenths++;
+    
+  }
 }
