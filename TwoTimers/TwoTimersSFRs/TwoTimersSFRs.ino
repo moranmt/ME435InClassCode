@@ -18,6 +18,14 @@ volatile int mainEventFlags = 0;
 #define GREEN_BUTTON_FLAG 0x01
 #define YELLOW_BUTTON_FLAG 0x02
 
+unsigned long yellowTimerMs = 0;
+uint8_t isyellowTimerRunning = 0;
+
+unsigned long greenTimerMs = 0;
+uint8_t isgreenTimerRunning = 0;
+
+unsigned long priorTimeMs = 0;
+
 void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
@@ -48,10 +56,8 @@ void loop() {
     mainEventFlags &= ~GREEN_BUTTON_FLAG;
     if (!digitalRead(GREEN_BUTTON)) {
       // do stuff
-      Serial.println("Press green");
-      greenCounter++;
-      digitalWrite(GREEN_LED, HIGH);
-      digitalWrite(YELLOW_LED, LOW);
+      isgreenTimerRunning = !isgreenTimerRunning;
+      digitalWrite(GREEN_LED, isgreenTimerRunning);      
     }
   }
   if (mainEventFlags & YELLOW_BUTTON_FLAG) {
@@ -59,20 +65,35 @@ void loop() {
     mainEventFlags &= ~YELLOW_BUTTON_FLAG;
     if (!digitalRead(YELLOW_BUTTON)) {
       // do stuff
-      Serial.println("Press yellow");
-      yellowCounter++;
-	  digitalWrite(GREEN_LED, LOW);
-      digitalWrite(YELLOW_LED, HIGH);
+      isyellowTimerRunning = !isyellowTimerRunning;
+      digitalWrite(YELLOW_LED, isyellowTimerRunning);
     }
   }
   if (!digitalRead(BLUE_BUTTON)) {
-      // do stuff
-	  digitalWrite(GREEN_LED, LOW);
-      digitalWrite(YELLOW_LED, LOW);
-      greenCounter = 0;
-      yellowCounter = 0;
+    // do stuff
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(YELLOW_LED, LOW);
+    lcd.clear();
+    isyellowTimerRunning = 0;
+    yellowTimerMs = 0;
+    isgreenTimerRunning = 0;
+    greenTimerMs = 0;
   }
-  delay(100);
+  
+
+  unsigned long currentTimeMs = millis();
+  unsigned long elapsedTimeMs = currentTimeMs - priorTimeMs;
+  priorTimeMs = currentTimeMs;
+  if(isyellowTimerRunning){
+    yellowTimerMs += elapsedTimeMs;
+    
+  }
+  if(isgreenTimerRunning){
+    greenTimerMs += elapsedTimeMs;
+    
+  }
+  updateLCD();  
+  delay(10);
 }
 
 
@@ -85,3 +106,14 @@ void yellow_pushbutton_isr() {
   mainEventFlags |= YELLOW_BUTTON_FLAG;
 }
 
+void updateLCD(){
+  lcd.setCursor(0,LINE_1);
+  lcd.print(yellowTimerMs / 1000);
+  lcd.print(".");
+  lcd.print(yellowTimerMs / 100 % 10);
+  
+  lcd.setCursor(0,LINE_2);
+  lcd.print(greenTimerMs / 1000);
+  lcd.print(".");
+  lcd.print(greenTimerMs / 100 % 10);
+}
