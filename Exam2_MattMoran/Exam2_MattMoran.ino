@@ -57,6 +57,11 @@ uint8_t isyellowTimerRunning = 0;
 unsigned long greenTimerTenths = 0;
 uint8_t isgreenTimerRunning = 0;
 
+unsigned long debounceTimerTenths = 0;
+uint8_t isdebounceTimerRunning = 0;
+
+int wait = 0;
+
 
 void setup() {
   Serial.begin(9600);
@@ -96,9 +101,11 @@ void setup() {
 
   GREEN_LED_PORT |= _BV(GREEN_LED_BIT);
   YELLOW_LED_PORT |= _BV(YELLOW_LED_BIT);
+  //isdebounceTimerRunning = !isdebounceTimerRunning;
   delay(100);
   GREEN_LED_PORT &= ~_BV(GREEN_LED_BIT);
   YELLOW_LED_PORT &= ~_BV(YELLOW_LED_BIT);
+  //isdebounceTimerRunning = !isdebounceTimerRunning;
   delay(100);
   
   
@@ -151,6 +158,18 @@ void loop() {
 
   updateLCD();  
   
+}
+
+void debounce(int delayMS){
+  while(wait == 0){
+    if(debounceTimerTenths == delayMS){
+      wait = 1;
+      isdebounceTimerRunning = !isdebounceTimerRunning;
+      debounceTimerTenths = 0;
+    }
+  }
+
+  wait = 0;
 }
 
 
@@ -209,7 +228,9 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER2_COMPA_vect) {
   TCNT2 = TIMER2_START;
   if(isgreenTimerRunning){
-    greenTimerTenths++;
-    
+    greenTimerTenths++; 
+  }
+  if(isdebounceTimerRunning){
+    debounceTimerTenths++; 
   }
 }

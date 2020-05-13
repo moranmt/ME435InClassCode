@@ -42,8 +42,6 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 // Counter and compare values
 #define TIMER2_START  0
 #define TIMER2_COMPARE  250
-#define debounce_START  0
-#define debounce_COMPARE  250
 
 /*** Interrupt flags ***/
 volatile int mainEventFlags = 0;
@@ -61,6 +59,8 @@ uint8_t isgreenTimerRunning = 0;
 
 unsigned long debounceTimerTenths = 0;
 uint8_t isdebounceTimerRunning = 0;
+
+int wait = 0;
 
 
 void setup() {
@@ -101,10 +101,12 @@ void setup() {
 
   GREEN_LED_PORT |= _BV(GREEN_LED_BIT);
   YELLOW_LED_PORT |= _BV(YELLOW_LED_BIT);
-  debounce(100);
+  //isdebounceTimerRunning = !isdebounceTimerRunning;
+  delay(100);
   GREEN_LED_PORT &= ~_BV(GREEN_LED_BIT);
   YELLOW_LED_PORT &= ~_BV(YELLOW_LED_BIT);
-  debounce(100);
+  //isdebounceTimerRunning = !isdebounceTimerRunning;
+  delay(100);
   
   
 }
@@ -112,7 +114,7 @@ void setup() {
 void loop() {
 
   if (mainEventFlags & GREEN_BUTTON_FLAG) {
-    debounce(20);
+    delay(20);
     mainEventFlags &= ~GREEN_BUTTON_FLAG;
     if(bit_is_clear(GREEN_BUTTON_PINREG,GREEN_BUTTON_BIT)){
       // do stuff
@@ -126,7 +128,7 @@ void loop() {
     }
   }
   if (mainEventFlags & YELLOW_BUTTON_FLAG) {
-    debounce(20);
+    delay(20);
     mainEventFlags &= ~YELLOW_BUTTON_FLAG;
     if(bit_is_clear(YELLOW_BUTTON_PINREG,YELLOW_BUTTON_BIT)){
       // do stuff
@@ -139,7 +141,7 @@ void loop() {
     }
   }
   if (mainEventFlags & Flag_BUTTON_BLUE) {
-    debounce(20);
+    delay(20);
     mainEventFlags &= ~Flag_BUTTON_BLUE;
     if(bit_is_clear(BLUE_BUTTON_PINREG,BLUE_BUTTON_BIT)){
       // do stuff
@@ -159,7 +161,15 @@ void loop() {
 }
 
 void debounce(int delayMS){
-    greenTimerTenths / 100 % 10
+  while(wait == 0){
+    if(debounceTimerTenths == delayMS){
+      wait = 1;
+      isdebounceTimerRunning = !isdebounceTimerRunning;
+      debounceTimerTenths = 0;
+    }
+  }
+
+  wait = 0;
 }
 
 
@@ -218,7 +228,9 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER2_COMPA_vect) {
   TCNT2 = TIMER2_START;
   if(isgreenTimerRunning){
-    greenTimerTenths++;
-    
+    greenTimerTenths++; 
+  }
+  if(isdebounceTimerRunning){
+    debounceTimerTenths++; 
   }
 }
