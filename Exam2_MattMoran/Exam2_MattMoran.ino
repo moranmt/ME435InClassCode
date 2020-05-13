@@ -101,11 +101,9 @@ void setup() {
 
   GREEN_LED_PORT |= _BV(GREEN_LED_BIT);
   YELLOW_LED_PORT |= _BV(YELLOW_LED_BIT);
-  //isdebounceTimerRunning = !isdebounceTimerRunning;
   delay(100);
   GREEN_LED_PORT &= ~_BV(GREEN_LED_BIT);
   YELLOW_LED_PORT &= ~_BV(YELLOW_LED_BIT);
-  //isdebounceTimerRunning = !isdebounceTimerRunning;
   delay(100);
   
   
@@ -161,8 +159,9 @@ void loop() {
 }
 
 void debounce(int delayMS){
+  isdebounceTimerRunning = !isdebounceTimerRunning;
   while(wait == 0){
-    if(debounceTimerTenths == delayMS){
+    if((debounceTimerTenths) > delayMS){
       wait = 1;
       isdebounceTimerRunning = !isdebounceTimerRunning;
       debounceTimerTenths = 0;
