@@ -11,6 +11,8 @@ void setup() {
 
 void loop() {
   if (stringComplete) {
+    //Serial.print("From Board: ");
+    //Serial.println(inputString);
     if(inputString.equalsIgnoreCase("ON")){
       digitalWrite(LED_BUILTIN, HIGH);
     }
