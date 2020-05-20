@@ -126,7 +126,7 @@ void loop()
   lastRedState = RedState;
   lastYellowState = YellowState;
   
-    if(rgbCounter == 0){
+  if(rgbCounter == 0){
     digitalWrite(RGB_RED_LED,LOW);
     digitalWrite(RGB_GREEN_LED,LOW);
     digitalWrite(RGB_BLUE_LED,LOW);
