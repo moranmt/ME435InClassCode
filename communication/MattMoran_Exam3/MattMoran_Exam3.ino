@@ -70,12 +70,12 @@ void setup() {
 
 void loop() {
 
-  potValue = analogRead(pot);
-  photoValue = analogRead(photo);
+  
+ 
 
   if (stringComplete) {
 
-    if(inputString.equalsIgnoreCase("Update")){
+    if(inputString.equalsIgnoreCase("Update")){   //old ADC
       for(int k = 0; k < 5; k++){
         digitalWrite(RED_LED, HIGH);
         digitalWrite(YELLOW_LED, HIGH);
@@ -140,6 +140,15 @@ void loop() {
     }
     else if(inputString.equalsIgnoreCase("BON")){
       digitalWrite(BLUE_LED, HIGH);
+    }
+    else if(inputString.equalsIgnoreCase("ADC")){
+      potValue = analogRead(pot);
+      Serial.print("POT ");
+      Serial.println(potValue);
+
+      photoValue = analogRead(photo);
+      Serial.print("PHOTO ");
+      Serial.println(photoValue);      
     }
     
     
