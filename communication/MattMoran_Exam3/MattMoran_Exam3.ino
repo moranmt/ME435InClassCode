@@ -70,7 +70,34 @@ void setup() {
 
 void loop() {
 
-  
+  if(MainEventFlags & Flag_BUTTON_RED){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_RED;
+    if (!digitalRead(RED_BUTTON)){
+      Serial.println("PressedRed");
+  	}
+  }
+  if(MainEventFlags & Flag_BUTTON_YELLOW){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_YELLOW;
+    if (!digitalRead(YELLOW_BUTTON)){
+      Serial.println("PressedYellow");
+  	}
+  }
+  if(MainEventFlags & Flag_BUTTON_GREEN){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_GREEN;
+    if (!digitalRead(GREEN_BUTTON)){
+      Serial.println("PressedGreen");
+  	}
+  }
+  if(MainEventFlags & Flag_BUTTON_BLUE){
+  	delay(30);
+    MainEventFlags &= ~Flag_BUTTON_BLUE;
+    if (!digitalRead(BLUE_BUTTON)){
+    Serial.println("PressedBlue");
+  	}
+  }
  
 
   if (stringComplete) {
@@ -150,10 +177,6 @@ void loop() {
       Serial.print("PHOTO ");
       Serial.println(photoValue);      
     }
-    
-    
-  
-    
     inputString = "";
     stringComplete = false;
   }
